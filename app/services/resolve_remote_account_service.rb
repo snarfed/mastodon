@@ -26,6 +26,7 @@ class ResolveRemoteAccountService < BaseService
     @webfinger = Goldfinger.finger("acct:#{uri}")
 
     confirmed_username, confirmed_domain = @webfinger.subject.gsub(/\Aacct:/, '').split('@')
+    Rails.logger.debug "Got #{confirmed_username} #{confirmed_domain}"
 
     if confirmed_username.casecmp(@username).zero? && confirmed_domain.casecmp(@domain).zero?
       @username = confirmed_username
@@ -39,7 +40,9 @@ class ResolveRemoteAccountService < BaseService
 
     Rails.logger.debug "Checking links"
     return if links_missing?
+    Rails.logger.debug "  links OK!"
     return Account.find_local(@username) if TagManager.instance.local_domain?(@domain)
+    Rails.logger.debug "  not local"
 
     RedisLock.acquire(lock_options) do |lock|
       if lock.acquired?
@@ -76,7 +79,12 @@ class ResolveRemoteAccountService < BaseService
   end
 
   def webfinger_update_due?
+<<<<<<< HEAD
     @account.nil? || @account.possibly_stale?
+=======
+    return true
+    # @account.nil? || @account.last_webfingered_at.nil? || @account.last_webfingered_at <= 1.day.ago
+>>>>>>> 29ff0503... lots of logging for debugging ostatus and activitypub interop
   end
 
   def activitypub_ready?
@@ -97,8 +105,10 @@ class ResolveRemoteAccountService < BaseService
   end
 
   def handle_activitypub
+    Rails.logger.debug "handle_activitypub"
     return if actor_json.nil?
 
+    Rails.logger.debug "  ...processing"
     @account = ActivityPub::ProcessAccountService.new.call(@username, @domain, actor_json)
   rescue Oj::ParseError
     nil
@@ -147,6 +157,7 @@ class ResolveRemoteAccountService < BaseService
   end
 
   def actor_url
+    Rails.logger.debug "link self href " + @webfinger.link('self').href
     @actor_url ||= @webfinger.link('self').href
   end
 
@@ -191,6 +202,7 @@ class ResolveRemoteAccountService < BaseService
   def actor_json
     return @actor_json if defined?(@actor_json)
 
+    Rails.logger.debug "actor_url #{actor_url}"
     json        = fetch_resource(actor_url, false)
     @actor_json = supported_context?(json) && json['type'] == 'Person' ? json : nil
   end

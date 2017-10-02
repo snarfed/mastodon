@@ -40,6 +40,7 @@ class PostStatusService < BaseService
     LinkCrawlWorker.perform_async(status.id) unless status.spoiler_text?
     DistributionWorker.perform_async(status.id)
     Pubsubhubbub::DistributionWorker.perform_async(status.stream_entry.id)
+    Rails.logger.debug "@ AP: distributing from post_status_service"
     ActivityPub::DistributionWorker.perform_async(status.id)
     ActivityPub::ReplyDistributionWorker.perform_async(status.id) if status.reply? && status.thread.account.local?
 

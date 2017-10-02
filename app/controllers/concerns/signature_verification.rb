@@ -14,10 +14,12 @@ module SignatureVerification
   end
 
   def signed_request_account
+
     return @signed_request_account if defined?(@signed_request_account)
 
     unless signed_request?
       @signature_verification_failure_reason = 'Request not signed'
+      Rails.logger.debug "no sig header!"
       @signed_request_account = nil
       return
     end
@@ -25,11 +27,13 @@ module SignatureVerification
     raw_signature    = request.headers['Signature']
     signature_params = {}
 
+    Rails.logger.debug 'sig ' + request.headers['Signature']
     raw_signature.split(',').each do |part|
       parsed_parts = part.match(/([a-z]+)="([^"]+)"/i)
       next if parsed_parts.nil? || parsed_parts.size != 3
       signature_params[parsed_parts[1]] = parsed_parts[2]
     end
+    Rails.logger.debug 'params ' + signature_params.to_s
 
     if incompatible_signature?(signature_params)
       @signature_verification_failure_reason = 'Incompatible request signature'
@@ -39,6 +43,7 @@ module SignatureVerification
 
     account = account_from_key_id(signature_params['keyId'])
 
+    Rails.logger.debug 'account ' + account.to_s
     if account.nil?
       @signature_verification_failure_reason = "Public key not found for key #{signature_params['keyId']}"
       @signed_request_account = nil

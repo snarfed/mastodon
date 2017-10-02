@@ -151,6 +151,7 @@ class Account < ApplicationRecord
   end
 
   def keypair
+    Rails.logger.debug "Keypair from #{private_key} #{public_key}"
     @keypair ||= OpenSSL::PKey::RSA.new(private_key || public_key)
   end
 

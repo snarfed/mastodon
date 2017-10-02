@@ -11,6 +11,7 @@ class ActivityPub::InboxesController < Api::BaseController
       process_payload
       head 202
     else
+      Rails.logger.debug "no AP signature found, or not verified"
       [signature_verification_failure_reason, 401]
     end
   end
@@ -36,6 +37,7 @@ class ActivityPub::InboxesController < Api::BaseController
   end
 
   def process_payload
+    Rails.logger.debug "Async processing payload"
     ActivityPub::ProcessingWorker.perform_async(signed_request_account.id, body.force_encoding('UTF-8'))
   end
 end

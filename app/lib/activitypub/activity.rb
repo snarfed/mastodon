@@ -23,6 +23,7 @@ class ActivityPub::Activity
     private
 
     def klass
+      # Rails.logger.debug "Routing activity type " + @json['type']
       case @json['type']
       when 'Create'
         ActivityPub::Activity::Create

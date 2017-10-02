@@ -20,6 +20,7 @@ class ReblogService < BaseService
     reblog = account.statuses.create!(reblog: reblogged_status, text: '')
 
     DistributionWorker.perform_async(reblog.id)
+    Rails.logger.debug "@ AP: distributing from reblog_service"
     Pubsubhubbub::DistributionWorker.perform_async(reblog.stream_entry.id)
     ActivityPub::DistributionWorker.perform_async(reblog.id)
 

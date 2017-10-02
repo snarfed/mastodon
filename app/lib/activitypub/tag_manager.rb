@@ -80,6 +80,7 @@ class ActivityPub::TagManager
   end
 
   def local_uri?(uri)
+    Rails.logger.debug "local_uri " + uri.to_s
     uri  = Addressable::URI.parse(uri)
     host = uri.normalized_host
     host = "#{host}:#{uri.port}" if uri.port

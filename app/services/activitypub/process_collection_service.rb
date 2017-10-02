@@ -4,11 +4,16 @@ class ActivityPub::ProcessCollectionService < BaseService
   include JsonLdHelper
 
   def call(body, account, options = {})
+    Rails.logger.debug "ActivityPub::ProcessCollectionService"
+
     @account = account
     @json    = Oj.load(body, mode: :strict)
     @options = options
 
+    Rails.logger.debug "0"
+    Rails.logger.debug " ... " + @json.to_s
     return unless supported_context?
+    Rails.logger.debug "1"
     return if different_actor? && verify_account!.nil?
     return if @account.suspended? || @account.local?
 

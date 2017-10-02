@@ -9,7 +9,9 @@ class ActivityPub::ReplyDistributionWorker
     @status  = Status.find(status_id)
     @account = @status.thread&.account
 
+    Rails.logger.debug "@ AP: skip distribution?"
     return if @account.nil? || skip_distribution?
+    Rails.logger.debug "  ...no!"
 
     ActivityPub::DeliveryWorker.push_bulk(inboxes) do |inbox_url|
       [signed_payload, @status.account_id, inbox_url]
