@@ -6,6 +6,7 @@ class Api::SalmonController < Api::BaseController
 
   def update
     if verify_payload?
+      Rails.logger.debug "Processing"
       process_salmon
       head 202
     elsif payload.present?

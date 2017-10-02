@@ -75,6 +75,10 @@ Rails.application.configure do
   # Otherwise, use letter_opener, which launches a browser window to view sent mail.
   config.action_mailer.delivery_method = (ENV['HEROKU'] || ENV['VAGRANT'] || ENV['REMOTE_DEV']) ? :letter_opener_web : :letter_opener
 
+  config.to_prepare do
+    Sidekiq::Logging.logger.level = Logger::DEBUG
+  end
+
   config.after_initialize do
     Bullet.enable        = true
     Bullet.bullet_logger = true

@@ -37,6 +37,7 @@ class ResolveRemoteAccountService < BaseService
       return
     end
 
+    Rails.logger.debug "Checking links"
     return if links_missing?
     return Account.find_local(@username) if TagManager.instance.local_domain?(@domain)
 
@@ -65,6 +66,7 @@ class ResolveRemoteAccountService < BaseService
   end
 
   def ostatus_ready?
+    Rails.logger.debug "Links: #{canonical_uri} #{hub_url}"
     !(@webfinger.link('http://schemas.google.com/g/2010#updates-from').nil? ||
       @webfinger.link('salmon').nil? ||
       @webfinger.link('http://webfinger.net/rel/profile-page').nil? ||

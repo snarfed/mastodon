@@ -17,9 +17,13 @@ class ProcessInteractionService < BaseService
 
     return if account.nil? || account.suspended?
 
+    Rails.logger.debug "Verifying again"
     if salmon.verify(envelope, account.keypair)
+    Rails.logger.debug "Verifed again"
       RemoteProfileUpdateWorker.perform_async(account.id, body.force_encoding('UTF-8'), true)
 
+      v = verb(xml)
+      Rails.logger.debug "Verb #{v}"
       case verb(xml)
       when :follow
         follow!(account, target_account) unless target_account.locked? || target_account.blocking?(account) || target_account.domain_blocking?(account.domain)
@@ -36,6 +40,8 @@ class ProcessInteractionService < BaseService
       when :unfavorite
         unfavourite!(xml, account)
       when :post
+        m = mentions_account?(xml, target_account)
+        Rails.logger.debug "Mentioned #{m}"
         add_post!(body, account) if mentions_account?(xml, target_account)
       when :share
         add_post!(body, account) unless status(xml).nil?
@@ -48,6 +54,7 @@ class ProcessInteractionService < BaseService
       end
     end
   rescue HTTP::Error, OStatus2::BadSalmonError, Mastodon::NotPermittedError
+    Rails.logger.debug "DIED in process_interaction_service"
     nil
   end
 

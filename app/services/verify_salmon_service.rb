@@ -10,10 +10,12 @@ class VerifySalmonService < BaseService
     xml.encoding = 'utf-8'
 
     account = author_from_xml(xml.at_xpath('/xmlns:entry', xmlns: OStatus::TagManager::XMLNS))
+    Rails.logger.debug "Salmon using account #{account}"
 
     if account.nil?
       false
     else
+      Rails.logger.debug "Starting Salmon verify with #{account.keypair} ,\n#{payload}"
       salmon.verify(payload, account.keypair)
     end
   end
